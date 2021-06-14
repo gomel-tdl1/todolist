@@ -11,14 +11,14 @@ type MapDispatchPropsType = {}
 type OwnPropsType = {}
 type PropsType = MapStateToPropsType & MapDispatchPropsType & OwnPropsType;
 
-const Todolist: FC<PropsType> = (props) => {
-    debugger
+const Todolist: FC<PropsType> = React.memo((props) => {
+
     return (
-        <div className='grid grid-cols-3'>
-            {props.lists.map(list => <TodolistCard list={list}/>)}
+        <div className='grid grid-cols-3 gap-4'>
+            {props.lists.map((list, index) => <TodolistCard list={list} key={index}/>)}
         </div>
     );
-}
+})
 const mapStateToProps = (state: AppStateType): MapStateToPropsType => ({
     lists: state.todolist.lists
 });

@@ -1,3 +1,5 @@
+const CracoLessPlugin = require('craco-less');
+
 module.exports = {
     style: {
         postcss: {
@@ -7,10 +9,6 @@ module.exports = {
             ],
         },
     },
-}
-const CracoLessPlugin = require('craco-less');
-
-module.exports = {
     plugins: [
         {
             plugin: CracoLessPlugin,
