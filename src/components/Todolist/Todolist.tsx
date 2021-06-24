@@ -10,7 +10,7 @@ import {
 } from '../../redux/todolist-reducer';
 import TodolistCard from './TodolistCard';
 import {AppStateType} from "../../redux/redux-store";
-import {Button, Input, Modal, Space} from "antd";
+import {Alert, Button, Form, Input, Modal, Space} from "antd";
 
 type MapStateToPropsType = {
     lists: ListType[]
@@ -25,9 +25,9 @@ type OwnPropsType = {}
 type PropsType = MapStateToPropsType & MapDispatchPropsType & OwnPropsType;
 
 const Todolist: FC<PropsType> = React.memo((props) => {
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [listTitle, setListTitle] = useState('');
-    const [listDescription, setListDescription] = useState('');
+    const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+    const [listTitle, setListTitle] = useState<string>('');
+    const [listDescription, setListDescription] = useState<string>('');
 
     const addList = () => {
         setIsModalVisible(true);
@@ -45,14 +45,47 @@ const Todolist: FC<PropsType> = React.memo((props) => {
             <Button type={'primary'} block onClick={addList}>Create list</Button>
             <Modal title="Create list" visible={isModalVisible} onOk={onModalConfirm} onCancel={onModalCanceled}
                    confirmLoading={props.isLoading} okButtonProps={{disabled: (!listTitle || !listDescription)}}>
-                <Input placeholder='Enter list title' value={listTitle}
-                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                           setListTitle(e.target.value)
-                       }}/>
-                <Input placeholder='Enter list description' value={listDescription}
-                       onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                           setListDescription(e.target.value)
-                       }} className='mt-4'/>
+                <Form
+                    name="addList"
+                    labelCol={{
+                        span: 6,
+                    }}
+                    wrapperCol={{
+                        span: 16,
+                    }}
+                >
+                    <Form.Item
+                        label="Title"
+                        name="title"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please input list title!',
+                            },
+                        ]}
+                    >
+                        <Input placeholder='Enter list title' value={listTitle}
+                               onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                   setListTitle(e.target.value)
+                               }}/>
+                    </Form.Item>
+
+                    <Form.Item
+                        label="Description"
+                        name="description"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please input list description!',
+                            },
+                        ]}
+                    >
+                        <Input placeholder='Enter list description' value={listDescription}
+                               onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                                   setListDescription(e.target.value)
+                               }} className='mt-4'/>
+                    </Form.Item>
+                </Form>
             </Modal>
             <div className='grid grid-cols-3 gap-4'>
                 {props.lists.length !== 0 &&

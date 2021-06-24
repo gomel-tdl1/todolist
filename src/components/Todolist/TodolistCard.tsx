@@ -12,7 +12,7 @@ type PropsType = {
 const TodolistCard: FC<PropsType> = (props) => {
     let [taskDescription, setTaskDescription] = useState('');
     const addNewTask = () => {
-        props.addTask(taskDescription, props.listId)
+        props.addTask(taskDescription.trim(), props.listId);
         setTaskDescription('')
     }
     return (

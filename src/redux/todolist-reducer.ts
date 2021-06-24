@@ -1,6 +1,7 @@
 import {ThunkAction} from "redux-thunk";
 import {v1} from "uuid";
 import {AppStateType} from "./redux-store";
+import {setError, SetErrorType} from "./error-reducer";
 
 const SET_TASK_COMPLETE = "SET_TASK_COMPLETE"
 const ADD_TASK = "ADD_TASK"
@@ -48,7 +49,7 @@ export const addList = (title: string, description: string): AddListType => ({
     description,
     title
 })
-type ActionsTypes = SetLoadingType | SetTaskCompleteType | AddTaskType | AddListType
+type ActionsTypes = SetLoadingType | SetTaskCompleteType | AddTaskType | AddListType | SetErrorType
 
 export type ListType = {
     id: string
@@ -123,7 +124,15 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
 
 export type ThunkActionType = ThunkAction<Promise<void>, AppStateType, unknown, ActionsTypes>;
 export const addListThunk = (title: string, description: string): ThunkActionType => async (dispatch) => {
-    dispatch(setLoading(true))
-    await dispatch(addList(title, description))
-    dispatch(setLoading(false))
+    try{
+        dispatch(setLoading(true))
+        await dispatch(addList(title, description))
+        dispatch(setLoading(false))
+    }catch (e) {
+        dispatch(setError({
+            message: 'List is not added',
+            description: String(e.message)
+        }))
+    }
+
 }
