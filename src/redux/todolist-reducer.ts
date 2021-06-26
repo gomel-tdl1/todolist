@@ -5,7 +5,9 @@ import {setError, SetErrorType} from "./error-reducer";
 
 const SET_TASK_COMPLETE = "SET_TASK_COMPLETE"
 const ADD_TASK = "ADD_TASK"
+const DELETE_TASK = "DELETE_TASK"
 const ADD_LIST = "ADD_LIST"
+const DELETE_LIST = "DELETE_LIST"
 const SET_LOADING = "SET_LOADING"
 
 export type SetLoadingType = {
@@ -39,6 +41,17 @@ export const addTask = (description: string, listId: string): AddTaskType => ({
     listId
 })
 
+export type DeleteTaskType = {
+    type: typeof DELETE_TASK
+    listId: string
+    taskId: string
+}
+export const deleteTask = (listId: string, taskId: string): DeleteTaskType => ({
+    type: DELETE_TASK,
+    listId,
+    taskId
+})
+
 export type AddListType = {
     type: typeof ADD_LIST
     description: string
@@ -49,7 +62,24 @@ export const addList = (title: string, description: string): AddListType => ({
     description,
     title
 })
-type ActionsTypes = SetLoadingType | SetTaskCompleteType | AddTaskType | AddListType | SetErrorType
+
+export type DeleteListType = {
+    type: typeof DELETE_LIST
+    listId: string
+}
+export const deleteList = (listId: string): DeleteListType => ({
+    type: DELETE_LIST,
+    listId
+})
+
+type ActionsTypes =
+    SetLoadingType
+    | SetTaskCompleteType
+    | AddTaskType
+    | AddListType
+    | SetErrorType
+    | DeleteTaskType
+    | DeleteListType
 
 export type ListType = {
     id: string
@@ -67,6 +97,7 @@ let initialState = {
     isLoading: false
 };
 export type InitialStateType = typeof initialState;
+
 export const todolistReducer = (state = initialState, action: ActionsTypes): InitialStateType => {
     let newLists = [...state.lists];
     switch (action.type) {
@@ -78,12 +109,10 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
             newLists = newLists.map((list) => {
                 if (list.id === action.listId) {
                     // @ts-ignore
-                    let newTasks = list.tasks.map((task) => {
+                    list.tasks = list.tasks.map((task) => {
                         if (task.id === action.taskId) return editingTask
                         return task
                     })
-                    // @ts-ignore
-                    list.tasks = newTasks
                     return list
                 }
                 return list
@@ -107,6 +136,19 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
                 return list
             })
             return {...state, lists: newLists}
+        case DELETE_TASK:
+            let tasksForDelete = newLists.find(list => list.id === action.listId)?.tasks
+            // @ts-ignore
+            tasksForDelete = tasksForDelete.filter(task => action.taskId !== task.id);
+            newLists = newLists.map((list) => {
+                if (list.id === action.listId) {
+                    // @ts-ignore
+                    list.tasks = tasksForDelete
+                    return list
+                }
+                return list
+            })
+            return {...state, lists: newLists}
         case ADD_LIST:
             let newList = {
                 id: v1(),
@@ -115,6 +157,8 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
                 tasks: []
             }
             return {...state, lists: [...state.lists, newList]}
+        case DELETE_LIST:
+            return {...state, lists: state.lists.filter(list =>action.listId !== list.id)}
         case SET_LOADING:
             return {...state, isLoading: action.isLoading}
         default:
@@ -124,15 +168,50 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
 
 export type ThunkActionType = ThunkAction<Promise<void>, AppStateType, unknown, ActionsTypes>;
 export const addListThunk = (title: string, description: string): ThunkActionType => async (dispatch) => {
-    try{
+    try {
         dispatch(setLoading(true))
         await dispatch(addList(title, description))
         dispatch(setLoading(false))
-    }catch (e) {
+    } catch (e) {
         dispatch(setError({
             message: 'List is not added',
             description: String(e.message)
         }))
     }
-
+}
+export const addTaskThunk = (description: string, listId: string): ThunkActionType => async (dispatch) => {
+    try {
+        dispatch(setLoading(true))
+        await dispatch(addTask(description, listId))
+        dispatch(setLoading(false))
+    } catch (e) {
+        dispatch(setError({
+            message: 'Task is not added',
+            description: String(e.message)
+        }))
+    }
+}
+export const deleteTaskThunk = (listId: string, taskId: string): ThunkActionType => async (dispatch) => {
+    try {
+        dispatch(setLoading(true))
+        await dispatch(deleteTask(listId, taskId))
+        dispatch(setLoading(false))
+    } catch (e) {
+        dispatch(setError({
+            message: 'Task is not deleted',
+            description: String(e.message)
+        }))
+    }
+}
+export const deleteListThunk = (listId: string): ThunkActionType => async (dispatch) => {
+    try {
+        dispatch(setLoading(true))
+        await dispatch(deleteList(listId))
+        dispatch(setLoading(false))
+    } catch (e) {
+        dispatch(setError({
+            message: 'List is not deleted',
+            description: String(e.message)
+        }))
+    }
 }

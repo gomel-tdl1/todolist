@@ -2,24 +2,26 @@ import React, {ChangeEvent, FC, useState} from 'react';
 import {connect} from 'react-redux';
 import {
     addListThunk,
-    addTask,
-    AddTaskType,
+    addTaskThunk, deleteListThunk,
+    deleteTaskThunk,
     ListType,
     setTaskComplete,
     SetTaskCompleteType
 } from '../../redux/todolist-reducer';
 import TodolistCard from './TodolistCard';
 import {AppStateType} from "../../redux/redux-store";
-import {Alert, Button, Form, Input, Modal, Space} from "antd";
+import {Button, Form, Input, Modal, Space} from "antd";
 
 type MapStateToPropsType = {
     lists: ListType[]
     isLoading: boolean
 }
 type MapDispatchPropsType = {
-    addTask: (description: string, taskId: string) => AddTaskType
+    addTaskThunk: (description: string, taskId: string) => void
     setTaskComplete: (listId: string, taskId: string) => SetTaskCompleteType
     addListThunk: (title: string, description: string) => void
+    deleteTaskThunk: (listId: string, taskId: string) => void
+    deleteListThunk: (listId: string) => void
 }
 type OwnPropsType = {}
 type PropsType = MapStateToPropsType & MapDispatchPropsType & OwnPropsType;
@@ -89,10 +91,12 @@ const Todolist: FC<PropsType> = React.memo((props) => {
             </Modal>
             <div className='grid grid-cols-3 gap-4'>
                 {props.lists.length !== 0 &&
-                props.lists.map((list, index) => <TodolistCard list={list} key={index}
-                                                               addTask={props.addTask}
-                                                               listId={list.id}
-                                                               setTaskComplete={props.setTaskComplete}/>)}
+                props.lists.map((list) => <TodolistCard list={list} key={list.id}
+                                                        addTask={props.addTaskThunk}
+                                                        listId={list.id}
+                                                        setTaskComplete={props.setTaskComplete}
+                                                        deleteTask={props.deleteTaskThunk}
+                deleteList={props.deleteListThunk}/>)}
             </div>
         </Space>
 
@@ -103,7 +107,9 @@ const mapStateToProps = (state: AppStateType): MapStateToPropsType => ({
     isLoading: state.todolist.isLoading
 });
 export default connect<MapStateToPropsType, MapDispatchPropsType, OwnPropsType, AppStateType>(mapStateToProps, {
-    addTask,
+    addTaskThunk,
     setTaskComplete,
-    addListThunk
+    addListThunk,
+    deleteTaskThunk,
+    deleteListThunk
 })(Todolist);
