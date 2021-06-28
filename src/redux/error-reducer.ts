@@ -1,15 +1,13 @@
-const SET_ERROR = "SET_ERROR"
+import {InferActionsTypes} from "./redux-store";
 
-export type SetErrorType = {
-    type: typeof SET_ERROR
-    error: ErrorType
+export const actionsError = {
+    setError: (error: ErrorType) => ({
+        type: 'SET_ERROR',
+        error
+    } as const)
 }
-export const setError = (error: ErrorType): SetErrorType => ({
-    type: SET_ERROR,
-    error
-});
 
-type ActionsTypes = SetErrorType
+type ActionsTypes = InferActionsTypes<typeof actionsError>
 export type ErrorType = {
     message: string,
     description: string
@@ -20,7 +18,7 @@ let initialState = {
 export type InitialStateType = typeof initialState;
 export const errorReducer = (state = initialState, action: ActionsTypes): InitialStateType => {
     switch (action.type) {
-        case "SET_ERROR":
+        case 'SET_ERROR':
             return {...state, error: action.error}
         default:
             return {...state};

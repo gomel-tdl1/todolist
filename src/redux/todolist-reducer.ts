@@ -1,85 +1,40 @@
 import {ThunkAction} from "redux-thunk";
 import {v1} from "uuid";
-import {AppStateType} from "./redux-store";
-import {setError, SetErrorType} from "./error-reducer";
+import {AppStateType, InferActionsTypes} from "./redux-store";
+import {actionsError} from "./error-reducer";
 
-const SET_TASK_COMPLETE = "SET_TASK_COMPLETE"
-const ADD_TASK = "ADD_TASK"
-const DELETE_TASK = "DELETE_TASK"
-const ADD_LIST = "ADD_LIST"
-const DELETE_LIST = "DELETE_LIST"
-const SET_LOADING = "SET_LOADING"
-
-export type SetLoadingType = {
-    type: typeof SET_LOADING
-    isLoading: boolean
+export const actionsTodolist = {
+    setLoading: (isLoading: boolean) => ({
+        type: 'SET_LOADING',
+        isLoading
+    } as const),
+    setTaskComplete: (listId: string, taskId: string) => ({
+        type: 'SET_TASK_COMPLETE',
+        listId,
+        taskId
+    } as const),
+    addTask: (description: string, listId: string) => ({
+        type: 'ADD_TASK',
+        description,
+        listId
+    } as const),
+    deleteTask: (listId: string, taskId: string) => ({
+        type: 'DELETE_TASK',
+        listId,
+        taskId
+    } as const),
+    addList: (title: string, description: string) => ({
+        type: 'ADD_LIST',
+        description,
+        title
+    } as const),
+    deleteList: (listId: string) => ({
+        type: 'DELETE_LIST',
+        listId
+    } as const)
 }
-export const setLoading = (isLoading: boolean): SetLoadingType => ({
-    type: SET_LOADING,
-    isLoading
-});
 
-export type SetTaskCompleteType = {
-    type: typeof SET_TASK_COMPLETE
-    listId: string
-    taskId: string
-}
-export const setTaskComplete = (listId: string, taskId: string): SetTaskCompleteType => ({
-    type: SET_TASK_COMPLETE,
-    listId,
-    taskId
-});
-
-export type AddTaskType = {
-    type: typeof ADD_TASK
-    description: string
-    listId: string
-}
-export const addTask = (description: string, listId: string): AddTaskType => ({
-    type: ADD_TASK,
-    description,
-    listId
-})
-
-export type DeleteTaskType = {
-    type: typeof DELETE_TASK
-    listId: string
-    taskId: string
-}
-export const deleteTask = (listId: string, taskId: string): DeleteTaskType => ({
-    type: DELETE_TASK,
-    listId,
-    taskId
-})
-
-export type AddListType = {
-    type: typeof ADD_LIST
-    description: string
-    title: string
-}
-export const addList = (title: string, description: string): AddListType => ({
-    type: ADD_LIST,
-    description,
-    title
-})
-
-export type DeleteListType = {
-    type: typeof DELETE_LIST
-    listId: string
-}
-export const deleteList = (listId: string): DeleteListType => ({
-    type: DELETE_LIST,
-    listId
-})
-
-type ActionsTypes =
-    SetLoadingType
-    | SetTaskCompleteType
-    | AddTaskType
-    | AddListType
-    | SetErrorType
-    | DeleteTaskType
-    | DeleteListType
+type ActionsTypes = InferActionsTypes<typeof actionsTodolist> | InferActionsTypes<typeof actionsError>
 
 export type ListType = {
     id: string
@@ -101,7 +56,7 @@ export type InitialStateType = typeof initialState;
 export const todolistReducer = (state = initialState, action: ActionsTypes): InitialStateType => {
     let newLists = [...state.lists];
     switch (action.type) {
-        case SET_TASK_COMPLETE:
+        case 'SET_TASK_COMPLETE':
             // @ts-ignore
             let editingTask = newLists.find(list => action.listId === list.id).tasks.find(task => action.taskId === task.id)
             // @ts-ignore
@@ -118,7 +73,7 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
                 return list
             })
             return {...state, lists: newLists}
-        case ADD_TASK:
+        case 'ADD_TASK':
             let tasks = newLists.find(list => list.id === action.listId)?.tasks
             let newTask: TaskType = {
                 id: v1(),
@@ -136,7 +91,7 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
                 return list
             })
             return {...state, lists: newLists}
-        case DELETE_TASK:
+        case 'DELETE_TASK':
             let tasksForDelete = newLists.find(list => list.id === action.listId)?.tasks
             // @ts-ignore
             tasksForDelete = tasksForDelete.filter(task => action.taskId !== task.id);
@@ -149,7 +104,7 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
                 return list
             })
             return {...state, lists: newLists}
-        case ADD_LIST:
+        case 'ADD_LIST':
             let newList = {
                 id: v1(),
                 title: action.title,
@@ -157,9 +112,9 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
                 tasks: []
             }
             return {...state, lists: [...state.lists, newList]}
-        case DELETE_LIST:
-            return {...state, lists: state.lists.filter(list =>action.listId !== list.id)}
-        case SET_LOADING:
+        case 'DELETE_LIST':
+            return {...state, lists: state.lists.filter(list => action.listId !== list.id)}
+        case 'SET_LOADING':
             return {...state, isLoading: action.isLoading}
         default:
             return {...state};
@@ -169,11 +124,11 @@ export const todolistReducer = (state = initialState, action: ActionsTypes): Ini
 export type ThunkActionType = ThunkAction<Promise<void>, AppStateType, unknown, ActionsTypes>;
 export const addListThunk = (title: string, description: string): ThunkActionType => async (dispatch) => {
     try {
-        dispatch(setLoading(true))
-        await dispatch(addList(title, description))
-        dispatch(setLoading(false))
+        dispatch(actionsTodolist.setLoading(true))
+        await dispatch(actionsTodolist.addList(title, description))
+        dispatch(actionsTodolist.setLoading(false))
     } catch (e) {
-        dispatch(setError({
+        dispatch(actionsError.setError({
             message: 'List is not added',
             description: String(e.message)
         }))
@@ -181,11 +136,11 @@ export const addListThunk = (title: string, description: string): ThunkActionTyp
 }
 export const addTaskThunk = (description: string, listId: string): ThunkActionType => async (dispatch) => {
     try {
-        dispatch(setLoading(true))
-        await dispatch(addTask(description, listId))
-        dispatch(setLoading(false))
+        dispatch(actionsTodolist.setLoading(true))
+        await dispatch(actionsTodolist.addTask(description, listId))
+        dispatch(actionsTodolist.setLoading(false))
     } catch (e) {
-        dispatch(setError({
+        dispatch(actionsError.setError({
             message: 'Task is not added',
             description: String(e.message)
         }))
@@ -193,11 +148,11 @@ export const addTaskThunk = (description: string, listId: string): ThunkActionTy
 }
 export const deleteTaskThunk = (listId: string, taskId: string): ThunkActionType => async (dispatch) => {
     try {
-        dispatch(setLoading(true))
-        await dispatch(deleteTask(listId, taskId))
-        dispatch(setLoading(false))
+        dispatch(actionsTodolist.setLoading(true))
+        await dispatch(actionsTodolist.deleteTask(listId, taskId))
+        dispatch(actionsTodolist.setLoading(false))
     } catch (e) {
-        dispatch(setError({
+        dispatch(actionsError.setError({
             message: 'Task is not deleted',
             description: String(e.message)
         }))
@@ -205,12 +160,24 @@ export const deleteTaskThunk = (listId: string, taskId: string): ThunkActionType
 }
 export const deleteListThunk = (listId: string): ThunkActionType => async (dispatch) => {
     try {
-        dispatch(setLoading(true))
-        await dispatch(deleteList(listId))
-        dispatch(setLoading(false))
+        dispatch(actionsTodolist.setLoading(true))
+        await dispatch(actionsTodolist.deleteList(listId))
+        dispatch(actionsTodolist.setLoading(false))
     } catch (e) {
-        dispatch(setError({
+        dispatch(actionsError.setError({
             message: 'List is not deleted',
+            description: String(e.message)
+        }))
+    }
+}
+export const toggleCompleteTaskThunk = (listId: string, taskId: string): ThunkActionType => async (dispatch) => {
+    try {
+        dispatch(actionsTodolist.setLoading(true))
+        await dispatch(actionsTodolist.setTaskComplete(listId, taskId))
+        dispatch(actionsTodolist.setLoading(false))
+    } catch (e) {
+        dispatch(actionsError.setError({
+            message: 'Task complete is not edited',
             description: String(e.message)
         }))
     }

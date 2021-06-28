@@ -1,5 +1,4 @@
 import React, {FC} from 'react';
-import {deleteTask, SetTaskCompleteType} from '../../redux/todolist-reducer';
 import {Checkbox} from "antd";
 import {CloseCircleTwoTone} from "@ant-design/icons";
 
@@ -8,7 +7,7 @@ type PropsType = {
     name: string
     taskId: string
     listId: string
-    setTaskComplete: (listId: string, taskId: string) => SetTaskCompleteType
+    setTaskComplete: (listId: string, taskId: string) => void
     deleteTask: (listId: string, taskId: string) => void
 }
 const TaskCard: FC<PropsType> = (props) => {

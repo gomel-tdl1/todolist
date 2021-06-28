@@ -2,11 +2,11 @@ import React, {ChangeEvent, FC, useState} from 'react';
 import {connect} from 'react-redux';
 import {
     addListThunk,
-    addTaskThunk, deleteListThunk,
+    addTaskThunk,
+    deleteListThunk,
     deleteTaskThunk,
     ListType,
-    setTaskComplete,
-    SetTaskCompleteType
+    toggleCompleteTaskThunk
 } from '../../redux/todolist-reducer';
 import TodolistCard from './TodolistCard';
 import {AppStateType} from "../../redux/redux-store";
@@ -18,7 +18,7 @@ type MapStateToPropsType = {
 }
 type MapDispatchPropsType = {
     addTaskThunk: (description: string, taskId: string) => void
-    setTaskComplete: (listId: string, taskId: string) => SetTaskCompleteType
+    toggleCompleteTaskThunk: (listId: string, taskId: string) => void
     addListThunk: (title: string, description: string) => void
     deleteTaskThunk: (listId: string, taskId: string) => void
     deleteListThunk: (listId: string) => void
@@ -46,7 +46,7 @@ const Todolist: FC<PropsType> = React.memo((props) => {
         <Space direction="vertical" className='w-full p-6'>
             <Button type={'primary'} block onClick={addList}>Create list</Button>
             <Modal title="Create list" visible={isModalVisible} onOk={onModalConfirm} onCancel={onModalCanceled}
-                   confirmLoading={props.isLoading} okButtonProps={{disabled: (!listTitle || !listDescription)}}>
+                   confirmLoading={props.isLoading} okButtonProps={{disabled: (!listTitle)}}>
                 <Form
                     name="addList"
                     labelCol={{
@@ -75,12 +75,6 @@ const Todolist: FC<PropsType> = React.memo((props) => {
                     <Form.Item
                         label="Description"
                         name="description"
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please input list description!',
-                            },
-                        ]}
                     >
                         <Input placeholder='Enter list description' value={listDescription}
                                onChange={(e: ChangeEvent<HTMLInputElement>) => {
@@ -94,9 +88,9 @@ const Todolist: FC<PropsType> = React.memo((props) => {
                 props.lists.map((list) => <TodolistCard list={list} key={list.id}
                                                         addTask={props.addTaskThunk}
                                                         listId={list.id}
-                                                        setTaskComplete={props.setTaskComplete}
+                                                        setTaskComplete={props.toggleCompleteTaskThunk}
                                                         deleteTask={props.deleteTaskThunk}
-                deleteList={props.deleteListThunk}/>)}
+                                                        deleteList={props.deleteListThunk}/>)}
             </div>
         </Space>
 
@@ -108,7 +102,7 @@ const mapStateToProps = (state: AppStateType): MapStateToPropsType => ({
 });
 export default connect<MapStateToPropsType, MapDispatchPropsType, OwnPropsType, AppStateType>(mapStateToProps, {
     addTaskThunk,
-    setTaskComplete,
+    toggleCompleteTaskThunk,
     addListThunk,
     deleteTaskThunk,
     deleteListThunk
